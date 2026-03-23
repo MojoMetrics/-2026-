@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MOJO EDUCATION PRO | 1 BAC 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
+        
+        :root {
+            --primary: #4f46e5;
+            --history: #0284c7;
+            --geography: #059669;
+            --bg: #f8fafc;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg);
+            color: #1e293b;
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .neo-card {
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        /* Lesson Content - Optimized for Memorization */
+        .content-area h2 { @apply text-2xl font-black mb-6 border-r-8 border-indigo-600 pr-4 text-indigo-900; }
+        .content-area h3 { @apply text-xl font-bold mt-8 mb-4 text-slate-800 flex items-center gap-2; }
+        .content-area h3::before { content: '•'; color: #4f46e5; font-size: 1.5rem; }
+        .content-area p { @apply text-lg leading-relaxed mb-4 text-slate-700; }
+        .content-area ul { @apply space-y-4 mb-8 list-none; }
+        .content-area li { @apply relative pr-8 text-lg text-slate-700; }
+        .content-area li::before {
+            content: '✓';
+            @apply absolute right-0 text-emerald-500 font-bold;
+        }
+
+        .info-box { @apply p-6 rounded-3xl mb-8 border-2; }
+        .box-blue { @apply bg-blue-50 border-blue-100 text-blue-900; }
+        .box-amber { @apply bg-amber-50 border-amber-100 text-amber-900; }
+        .box-green { @apply bg-emerald-50 border-emerald-100 text-emerald-900; }
+        .box-title { @apply block font-black text-xs uppercase tracking-tighter mb-2 opacity-70; }
+
+        /* Quiz UI */
+        .option-btn {
+            @apply w-full text-right p-5 rounded-2xl border-2 border-slate-100 font-bold text-slate-700 transition-all mb-3 hover:border-indigo-300 hover:bg-indigo-50;
+        }
+        .option-btn.correct { @apply border-emerald-500 bg-emerald-50 text-emerald-700; }
+        .option-btn.wrong { @apply border-rose-500 bg-rose-50 text-rose-700; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .mobile-nav-fixed {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                background: white;
+                z-index: 100;
+                display: flex;
+                justify-content: space-around;
+                padding: 1rem;
+                border-top: 1px solid #e2e8f0;
+                box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+            }
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="pb-24 md:pb-0">
+
+    <!-- Audio Controller (Hidden) -->
+    <audio id="bg-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Header / Navigation -->
+    <header class="sticky top-0 z-50 glass border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex flex-col">
+                <h1 class="text-2xl font-black text-indigo-700 leading-none">MOJO PRO</h1>
+                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">1 BAC REGIONAL 2026</span>
+            </div>
+
+            <!-- Desktop Nav -->
+            <nav class="hidden md:flex bg-slate-100 rounded-2xl p-1 gap-1">
+                <button onclick="changeTab('dashboard')" id="tab-dashboard" class="px-6 py-2 rounded-xl font-bold transition-all bg-white shadow-sm text-indigo-600">الرئيسية</button>
+                <button onclick="changeTab('lessons')" id="tab-lessons" class="px-6 py-2 rounded-xl font-bold transition-all text-slate-500 hover:text-indigo-600">الدروس</button>
+                <button onclick="changeTab('progress')" id="tab-progress" class="px-6 py-2 rounded-xl font-bold transition-all text-slate-500 hover:text-indigo-600">مساري</button>
+                <button onclick="changeTab('support')" id="tab-support" class="px-6 py-2 rounded-xl font-bold transition-all text-slate-500 hover:text-indigo-600">الدعم</button>
+            </nav>
+
+            <div class="flex items-center gap-4">
+                <button onclick="toggleAudio()" id="audio-btn" class="p-2 bg-indigo-50 text-indigo-600 rounded-full hover:bg-indigo-100 transition-all">
+                    <span id="audio-icon">🎵</span>
+                </button>
+                <div class="bg-rose-50 text-rose-600 px-3 py-1.5 rounded-lg border border-rose-100 font-bold text-xs">
+                    📅 <span id="days-count">--</span> يوم للجهوي
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Nav -->
+    <div class="md:hidden mobile-nav-fixed">
+        <button onclick="changeTab('dashboard')" class="flex flex-col items-center gap-1 text-slate-400" id="m-tab-dashboard">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+            <span class="text-[10px] font-bold">الرئيسية</span>
+        </button>
+        <button onclick="changeTab('lessons')" class="flex flex-col items-center gap-1 text-slate-400" id="m-tab-lessons">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+            <span class="text-[10px] font-bold">الدروس</span>
+        </button>
+        <button onclick="changeTab('progress')" class="flex flex-col items-center gap-1 text-slate-400" id="m-tab-progress">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="text-[10px] font-bold">مساري</span>
+        </button>
+        <button onclick="changeTab('support')" class="flex flex-col items-center gap-1 text-slate-400" id="m-tab-support">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+            <span class="text-[10px] font-bold">الدعم</span>
+        </button>
+    </div>
+
+    <main class="max-w-7xl mx-auto px-4 py-8 min-h-screen">
+        
+        <!-- SECTION 1: DASHBOARD -->
+        <section id="view-dashboard" class="fade-in space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="md:col-span-2 neo-card p-10 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h2 class="text-3xl font-black mb-2">طريقك للتميز 🎓</h2>
+                        <p class="opacity-80 mb-8 font-medium">استعد للامتحان الجهوي 2026 بخطط ذكية وشاملة.</p>
+                        <div class="flex items-center gap-6">
+                            <div class="flex-1">
+                                <div class="flex justify-between text-xs font-black mb-2">
+                                    <span>التقدم الإجمالي</span>
+                                    <span id="dash-pct">0%</span>
+                                </div>
+                                <div class="h-3 bg-white/20 rounded-full overflow-hidden">
+                                    <div id="dash-bar" class="h-full bg-white transition-all duration-1000" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <button onclick="changeTab('lessons')" class="px-6 py-3 bg-white text-indigo-700 rounded-xl font-bold hover:scale-105 transition-all">ابدأ الآن</button>
+                        </div>
+                    </div>
+                    <!-- Abstract Shape -->
+                    <div class="absolute -bottom-12 -left-12 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+
+                <div class="neo-card p-8 flex flex-col items-center justify-center text-center">
+                    <h3 class="font-black text-slate-700 mb-6">تحليل الأداء</h3>
+                    <div class="relative h-48 w-48">
+                        <canvas id="dashboardChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="neo-card p-8 border-r-8 border-emerald-500">
+                    <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="text-2xl">✅</span> دروس مكتملة
+                    </h3>
+                    <div id="done-list" class="space-y-2 text-sm text-slate-500 font-bold italic">لا توجد دروس مكتملة بعد.</div>
+                </div>
+                <div class="neo-card p-8 border-r-8 border-rose-500">
+                    <h3 class="font-black text-slate-800 mb-4 flex items-center gap-2">
+                        <span class="text-2xl">🔥</span> دروس متبقية
+                    </h3>
+                    <div id="pending-list" class="space-y-2 text-sm text-slate-500 font-bold italic">كل الدروس بانتظارك!</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: LESSONS -->
+        <section id="view-lessons" class="hidden fade-in flex flex-col lg:flex-row gap-8">
+            <aside class="w-full lg:w-80 shrink-0 space-y-6">
+                <div class="neo-card p-6 sticky top-28">
+                    <div class="flex gap-1 bg-slate-100 p-1 rounded-xl mb-6">
+                        <button onclick="filterDomain('history')" id="dom-h" class="flex-1 py-2 text-xs font-black rounded-lg bg-white shadow-sm text-indigo-600">التاريخ</button>
+                        <button onclick="filterDomain('geography')" id="dom-g" class="flex-1 py-2 text-xs font-black rounded-lg text-slate-500">الجغرافيا</button>
+                    </div>
+                    <div class="space-y-2 max-h-[60vh] overflow-y-auto pr-2 custom-scroll" id="lesson-sidebar">
+                        <!-- Lessons Injected -->
+                    </div>
+                </div>
+            </aside>
+
+            <div class="flex-grow min-w-0">
+                <!-- Lesson Reading View -->
+                <div id="lesson-reader" class="hidden neo-card p-8 md:p-12 content-area relative">
+                    <div id="lesson-badge" class="absolute top-0 right-0 px-6 py-2 bg-indigo-600 text-white font-black text-xs rounded-bl-2xl">تاريخ</div>
+                    <div id="lesson-body"></div>
+                    
+                    <div class="mt-12 pt-8 border-t flex flex-col sm:flex-row gap-4 justify-between">
+                        <button onclick="toggleLessonDone()" id="done-btn" class="px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all flex items-center gap-2">
+                            <span>✔️</span> أكملت المراجعة
+                        </button>
+                        <button onclick="openQuiz()" class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-all flex items-center gap-2">
+                            <span>🧠</span> اختبار الذكاء (Quiz)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiz View -->
+                <div id="quiz-view" class="hidden fade-in max-w-2xl mx-auto">
+                    <div id="quiz-start" class="neo-card p-12 text-center">
+                        <div class="text-6xl mb-6">🎯</div>
+                        <h2 class="text-3xl font-black text-slate-800 mb-2">تحدي الجهوي</h2>
+                        <p class="text-slate-500 font-bold mb-10">اختر مستوى الصعوبة لبدء الكويز</p>
+                        <div class="space-y-3">
+                            <button onclick="startQuiz('easy')" class="w-full p-5 bg-emerald-50 text-emerald-700 rounded-2xl border-2 border-emerald-100 font-black hover:bg-emerald-100">مستوى: أساسي (مفاهيم)</button>
+                            <button onclick="startQuiz('medium')" class="w-full p-5 bg-amber-50 text-amber-700 rounded-2xl border-2 border-amber-100 font-black hover:bg-amber-100">مستوى: متوسط (تحليلي)</button>
+                            <button onclick="startQuiz('hard')" class="w-full p-5 bg-rose-50 text-rose-700 rounded-2xl border-2 border-rose-100 font-black hover:bg-rose-100">مستوى: جهوي (استنتاجي)</button>
+                        </div>
+                    </div>
+
+                    <div id="quiz-active" class="hidden neo-card p-10">
+                        <div class="flex justify-between text-xs font-black text-slate-400 mb-8 uppercase tracking-widest">
+                            <span id="q-count">السؤال 1 / 5</span>
+                            <span id="q-timer">00:00</span>
+                        </div>
+                        <h2 id="q-text" class="text-2xl font-black text-slate-800 mb-8">--</h2>
+                        <div id="q-options" class="space-y-2"></div>
+                        <div id="q-feedback" class="hidden mt-8 p-6 rounded-2xl font-bold"></div>
+                        <button id="q-next" class="hidden mt-8 w-full py-4 bg-slate-800 text-white rounded-2xl font-black">السؤال التالي</button>
+                    </div>
+
+                    <div id="quiz-end" class="hidden neo-card p-12 text-center">
+                        <div id="result-emoji" class="text-7xl mb-6">🎉</div>
+                        <h2 class="text-3xl font-black text-slate-800 mb-2">انتهى الاختبار</h2>
+                        <div class="text-5xl font-black text-indigo-600 my-8"><span id="result-score">0</span>%</div>
+                        <p id="result-msg" class="text-slate-500 font-bold mb-8">--</p>
+                        <button onclick="changeTab('dashboard')" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold">العودة للرئيسية</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 3: PROGRESS TRACKER -->
+        <section id="view-progress" class="hidden fade-in">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <div class="neo-card p-8">
+                    <h2 class="text-2xl font-black text-slate-800 mb-6">خريطة الإنجاز الشخصية</h2>
+                    <div id="progress-map" class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                        <!-- Progress Boxes -->
+                    </div>
+                </div>
+                <div class="neo-card p-8 bg-slate-900 text-white">
+                    <h3 class="text-xl font-black mb-4">نصيحة اليوم 💡</h3>
+                    <p class="text-slate-400 leading-relaxed italic">"التكرار المتباعد هو سر حفظ الاجتماعيات. راجع الدرس اليوم، ثم بعد 3 أيام، ثم بعد أسبوع لترسيخ المعلومات في الذاكرة طويلة الأمد."</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 4: SUPPORT -->
+        <section id="view-support" class="hidden fade-in text-center py-12">
+            <div class="max-w-xl mx-auto neo-card p-12">
+                <div class="w-24 h-24 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">❤️</div>
+                <h2 class="text-3xl font-black text-slate-800 mb-4">مركز الدعم والتوجيه</h2>
+                <p class="text-slate-600 font-bold leading-relaxed mb-10">
+                    هل لديك تساؤل حول فقرة معينة؟ أو تحتاج نصيحة حول كيفية تنظيم وقتك؟ <br>
+                    أنا هنا لمساعدتك طوال رحلتك الدراسية.
+                </p>
+                <a href="https://www.instagram.com/adam_damsiri/" target="_blank" class="inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-tr from-purple-600 to-rose-500 text-white rounded-2xl font-black text-xl hover:shadow-xl hover:scale-105 transition-all">
+                    <span>📸</span> تواصل معي: adam_damsiri
+                </a>
+                <div class="mt-12 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    MOJO Education Pro Edition 2026
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <script>
+        // --- 1. DATA REPOSITORY (Based on the PDF Khotatat) ---
+        const DB = {
+            history: [
+                {
+                    id: 'h1', title: '1. التحولات الاقتصادية والمالية والاجتماعية والفكرية (ق19)',
+                    content: `
+                        <h2>التحولات الكبرى في العالم الرأسمالي</h2>
+                        <div class="info-box box-blue">
+                            <span class="box-title">المفهوم</span>
+                            مجموعة من التغيرات العميقة التي مست البنيات الاقتصادية والمالية والاجتماعية والفكرية بأوروبا خلال القرن 19م.
+                        </div>
+                        <h3>أولاً: التحولات الاقتصادية والمالية</h3>
+                        <ul>
+                            <li><strong>المجال الفلاحي:</strong> مكننة الإنتاج، استخدام الأسمدة الكيماوية، واعتماد الدورة الزراعية مما أدى لارتفاع المردودية.</li>
+                            <li><strong>المجال الصناعي:</strong> ظهور المصنع الكبير بدل الورشة، استغلال الفحم والكهرباء، والإنتاج الضخم (الفوردية).</li>
+                            <li><strong>المجال المالي:</strong> انتقل العالم من الرأسمالية التجارية إلى <strong>الرأسمالية المالية</strong> المعتمدة على البورصة والأبناك والشركات المجهولة الاسم.</li>
+                        </ul>
+                        <div class="info-box box-amber">
+                            <span class="box-title">التركيز الرأسمالي</span>
+                            ظهور اتحادات كبرى للشركات مثل الكرتيل (اتفاق) والتروست (اندماج) والهولدينغ (سيطرة مالية).
+                        </div>
+                        <h3>ثانياً: التحولات الاجتماعية والفكرية</h3>
+                        <ul>
+                            <li><strong>اجتماعياً:</strong> انفجار ديموغرافي، هجرة قروية، وظهور طبقيتين: <strong>البورجوازية</strong> (المالكة للثروة) و<strong>البروليتاريا</strong> (العمال المستغلون).</li>
+                            <li><strong>فكرياً:</strong> ظهور التيار الليبرالي الكلاسيكي، وتيارات الاشتراكية (الطوباوية، العلمية الماركسية، والفوضوية).</li>
+                        </ul>
+                    `,
+                    quiz: {
+                        easy: [{ q: "ما هي المادة الطاقية الأساسية للثورة الصناعية الأولى؟", a: ["الكهرباء", "الفحم الحجري", "البترول"], c: 1, exp: "الفحم كان عصب الصناعة والسكك الحديدية." }],
+                        medium: [{ q: "ما الفرق بين الكرتيل والتروست؟", a: ["الكرتيل اتفاق والتروست اندماج", "الكرتيل اندماج والتروست اتفاق", "لا فرق بينهما"], c: 0, exp: "الكرتيل هو اتفاق شركات دون فقدان شخصيتها القانونية." }],
+                        hard: [{ q: "كيف أثرت الرأسمالية المالية على الاقتصاد؟", a: ["بالتركيز على الفلاحة", "بسيطرة الأبناك والبورصة على القرار الاقتصادي", "بمنع التوسع الاستعماري"], c: 1, exp: "البنك أصبح هو الممول والمسير للشركات." }]
+                    }
+                },
+                {
+                    id: 'h2', title: '2. التنافس الإمبريالي واندلاع الحرب العالمية الأولى',
+                    content: `
+                        <h2>التنافس الإمبريالي ومخاض الحرب العظمى</h2>
+                        <div class="info-box box-amber">
+                            <span class="box-title">تعريف الإمبريالية</span>
+                            حركة توسعية قادتها الدول الرأسمالية في القرن 19 للسيطرة على مناطق خارج أوروبا (إفريقيا وآسيا) لتصريف فائض الإنتاج.
+                        </div>
+                        <h3>أولاً: مظاهر وأساليب التنافس</h3>
+                        <ul>
+                            <li><strong>التنافس الاقتصادي:</strong> صراع حول الأسواق الخارجية والمواد الأولية.</li>
+                            <li><strong>التنافس السياسي:</strong> صراع حول النفوذ الترابي (أزمة المغرب، أزمة البلقان).</li>
+                            <li><strong>الوسائل:</strong> التحالفات العسكرية (الوفاق الثلاثي ضد التحالف الثلاثي) والسباق نحو التسلح.</li>
+                        </ul>
+                        <div class="info-box box-blue">
+                            <span class="box-title">مؤتمرات التسوية</span>
+                            مؤتمر برلين (تقسيم إفريقيا)، مؤتمر الجزيرة الخضراء 1906 (حول المغرب).
+                        </div>
+                        <h3>ثانياً: اندلاع الحرب العالمية الأولى</h3>
+                        <ul>
+                            <li><strong>السبب المباشر:</strong> اغتيال ولي عهد النمسا بمدينة سراييفو (28 يونيو 1914) على يد طالب صربي.</li>
+                            <li><strong>النتائج:</strong> سقوط الإمبراطوريات القديمة، خسائر بشرية ومادية فادحة، وتوقيع معاهدات قاسية (فرساي).</li>
+                        </ul>
+                    `,
+                    quiz: {
+                        easy: [{ q: "ما هي الدولة التي أعلنت الحرب أولاً في 1914؟", a: ["فرنسا", "النمسا ضد صربيا", "روسيا"], c: 1, exp: "النمسا فعلت نظام التحالفات بعد اغتيال ولي عهدها." }]
+                    }
+                },
+                { id: 'h3', title: '3. اليقظة الفكرية بالمشرق العربي', content: `<h2>اليقظة الفكرية</h2><p>حركة فكرية نهضوية شهدتها مصر والشام لمواجهة الاستبداد العثماني والضغوط الغربية...</p>`, quiz: { easy: [{ q: "أين ظهرت اليقظة الفكرية؟", a: ["المغرب", "مصر والشام", "الجزائر"], c: 1, exp: "مصر كانت مهد النهضة العربية." }] } },
+                { id: 'h4', title: '4. الضغوط الاستعمارية على المغرب ومحاولات الإصلاح', content: `<h2>الضغوط على المغرب</h2><p>تعرض المغرب لضغوط عسكرية (إسلي وتطوان) ودبلوماسية وحاول سلاطينه (محمد بن عبد الرحمن، الحسن الأول) الإصلاح...</p>`, quiz: { easy: [{ q: "متى كانت معركة إسلي؟", a: ["1844", "1860", "1912"], c: 0, exp: "انهزم فيها المغرب أمام فرنسا." }] } },
+                { id: 'h5', title: '5. أوروبا من نهاية ح.ع.1 إلى أزمة 1929', content: `<h2>أوروبا بين الحربين</h2><p>شهدت أوروبا تحولات سياسية كبرى (الثورة الروسية، الفاشية والنازية) والانهيار الاقتصادي الكبير...</p>`, quiz: { easy: [{ q: "أين انطلقت أزمة 1929؟", a: ["لندن", "نيويورك (وول ستريت)", "باريس"], c: 1, exp: "بدأت بانهيار البورصة الأمريكية." }] } },
+                { id: 'h6', title: '6. الحرب العالمية الثانية (الأسباب والنتائج)', content: `<h2>الحرب العالمية الثانية</h2><p>اندلعت بسبب فشل عصبة الأمم وتوسعات هتلر، وانتهت بظهور القوتين العظمتين (أمريكا والاتحاد السوفياتي)...</p>`, quiz: { easy: [{ q: "متى انتهت ح.ع.2؟", a: ["1918", "1945", "1956"], c: 1, exp: "باستسلام ألمانيا واليابان." }] } },
+                { id: 'h7', title: '7. نظام الحماية بالمغرب والاستغلال الاستعماري', content: `<h2>نظام الحماية</h2><p>فرضت الحماية 1912 وقسم المغرب لمناطق نفوذ فرنسية وإسبانية ودولية (طنجة)، وتم استنزاف خيراته...</p>`, quiz: { easy: [{ q: "من هو أول مقيم عام فرنسي بالمغرب؟", a: ["ليوطي", "كوغود", "جوان"], c: 0, exp: "المارشال ليوطي." }] } },
+                { id: 'h8', title: '8. نضال المغرب من أجل الاستقلال واستكمال الوحدة', content: `<h2>نضال المغرب</h2><p>مر من المقاومة المسلحة (الريف، الأطلس) إلى العمل السياسي والمطالبة بالاستقلال 1944...</p>`, quiz: { easy: [{ q: "متى نال المغرب استقلاله؟", a: ["1955", "1956", "1975"], c: 1, exp: "2 مارس 1956." }] } }
+            ],
+            geography: [
+                {
+                    id: 'g1', title: '1. مفهوم التنمية: تعدد المقاربات والتقسيمات الكبرى',
+                    content: `
+                        <h2>مفهوم التنمية واستراتيجياتها</h2>
+                        <div class="info-box box-green">
+                            <span class="box-title">تعريف التنمية</span>
+                            سيرورة متواصلة من التغيرات التي تهدف إلى تحسين جودة عيش السكان اقتصادياً واجتماعياً.
+                        </div>
+                        <h3>أولاً: المقاربات المعتمدة</h3>
+                        <ul>
+                            <li><strong>المقاربة الاقتصادية:</strong> تعتمد على الناتج الداخلي الخام (PIB).</li>
+                            <li><strong>المقاربة الاجتماعية:</strong> تركز على الصحة، التعليم، والفقر.</li>
+                            <li><strong>المقاربة الديمغرافية:</strong> تركز على معدلات الولادات والوفيات.</li>
+                            <li><strong>المقاربة التنموية (IDH):</strong> مؤشر يجمع بين الدخل، الصحة، والتعليم.</li>
+                        </ul>
+                        <div class="info-box box-blue">
+                            <span class="box-title">التقسيمات الكبرى</span>
+                            ينقسم العالم إلى <strong>دول الشمال</strong> (المتقدمة) و<strong>دول الجنوب</strong> (النامية والصاعدة).
+                        </div>
+                    `,
+                    quiz: {
+                        easy: [{ q: "ما هو مؤشر IDH؟", a: ["مؤشر مالي", "مؤشر التنمية البشرية", "مؤشر عسكري"], c: 1, exp: "IDH هو المقياس الحقيقي لرفاهية الشعوب." }]
+                    }
+                },
+                {
+                    id: 'g2', title: '2. المجال المغربي: الموارد الطبيعية والبشرية',
+                    content: `
+                        <h2>الموارد الطبيعية والبشرية بالمغرب</h2>
+                        <h3>أولاً: الموارد الطبيعية</h3>
+                        <ul>
+                            <li><strong>المياه:</strong> يعاني المغرب من نقص بنيوي وضغط كبير (إجهاد مائي).</li>
+                            <li><strong>التربة:</strong> ضيق المساحات الزراعية وزحف التصحر.</li>
+                            <li><strong>الغابة:</strong> تراجع الغطاء الغابوي بسبب الحرائق والرعي الجائر.</li>
+                        </ul>
+                        <div class="info-box box-amber">
+                            <span class="box-title">الموارد البشرية</span>
+                            يتميز المغرب ببنية سكانية فتية، لكن يعاني من ضعف مؤشر التنمية البشرية في بعض المناطق القروية.
+                        </div>
+                    `,
+                    quiz: {
+                        easy: [{ q: "ما هي أكبر ثروة معدنية في المغرب؟", a: ["الحديد", "الفوسفاط", "النحاس"], c: 1, exp: "المغرب يمتلك 75% من الاحتياطي العالمي." }]
+                    }
+                },
+                { id: 'g3', title: '3. الاختيارات الكبرى لسياسة إعداد التراب الوطني', content: `<h2>إعداد التراب الوطني</h2><p>سياسة تهدف لتوزيع عادل للأنشطة والسكان للحد من الفوارق بين الجهات...</p>`, quiz: { easy: [{ q: "ما هدف إعداد التراب؟", a: ["بناء الطرق فقط", "تحقيق العدالة المجالية", "تشجيع الهجرة"], c: 1, exp: "الهدف هو التوازن بين المدن والبوادي." }] } },
+                { id: 'g4', title: '4. التهيئة الحضرية والريفية: أزمة المدينة والأرياف', content: `<h2>أزمة المدينة والريف</h2><p>تعاني المدن من السكن العشوائي والتلوث، والأرياف من التهميش وضعف التجهيزات...</p>`, quiz: { easy: [{ q: "ما هو سبب أزمة المدينة؟", a: ["الهجرة القروية السريعة", "كثرة الحدائق", "قلة السكان"], c: 0, exp: "النمو الحضري فاق قدرة المدن على الاستيعاب." }] } },
+                { id: 'g5', title: '5. العالم العربي: مشكل الماء وظاهرة التصحر', content: `<h2>مشاكل العالم العربي</h2><p>منطقة جافة تعاني من فقر مائي حاد (أقل من 500م3) وزحف رمال الصحراء على الأراضي الزراعية...</p>`, quiz: { easy: [{ q: "كم تبلغ حصة الفرد في العالم العربي من الماء؟", a: ["فائض كبير", "تحت خط الفقر المائي", "متوسطة"], c: 1, exp: "أغلب الدول العربية تعاني من إجهاد مائي." }] } },
+                { id: 'g6', title: '6. الولايات المتحدة: قوة اقتصادية عظمى', content: `<h2>العملاق الأمريكي</h2><p>أول قوة اقتصادية في العالم بفضل مؤهلات طبيعية ضخمة وتنظيم رأسمالي محكم وتكنولوجيا متطورة...</p>`, quiz: { easy: [{ q: "ما هو نظام أمريكا الاقتصادي؟", a: ["اشتراكي", "رأسمالي ليبرالي", "إقطاعي"], c: 1, exp: "يقوم على حرية المبادرة والمنافسة." }] } },
+                { id: 'g7', title: '7. الاتحاد الأوروبي: نحو اندماج شامل', content: `<h2>الاندماج الأوروبي</h2><p>تكتل اقتصادي يهدف لتحقيق وحدة شاملة (عملة اليورو، فضاء شينغن، السياسة الفلاحية المشتركة)...</p>`, quiz: { easy: [{ q: "ما هي عملة الاتحاد الموحدة؟", a: ["الدولار", "اليورو", "الفرنك"], c: 1, exp: "بدأ العمل بها رسمياً في 2002." }] } },
+                { id: 'g8', title: '8. الصين: قوة اقتصادية صاعدة', content: `<h2>المعجزة الصينية</h2><p>انتقلت من اقتصاد منغلق إلى "اشتراكية السوق" لتصبح مصنع العالم ومنافساً شرساً لأمريكا...</p>`, quiz: { easy: [{ q: "بماذا تلقب الصين اقتصادياً؟", a: ["مخزن العالم", "مصنع العالم", "مزرعة العالم"], c: 1, exp: "بسبب ضخامة إنتاجها الصناعي وتصديره." }] } }
+            ]
+        };
+
+        // --- 2. ENGINE & STATE MANAGEMENT ---
+        let state = {
+            activeTab: 'dashboard',
+            activeDomain: 'history',
+            lessonId: null,
+            progress: JSON.parse(localStorage.getItem('mojo_2026_db')) || { completed: [], scores: {} },
+            quiz: null
+        };
+
+        function init() {
+            renderDashboard();
+            updateStats();
+            updateCountdown();
+            filterDomain('history');
+            
+            // Auto-save progress
+            setInterval(() => {
+                localStorage.setItem('mojo_2026_db', JSON.stringify(state.progress));
+            }, 5000);
+        }
+
+        function changeTab(tabName) {
+            state.activeTab = tabName;
+            document.querySelectorAll('main > section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(`view-${tabName}`).classList.remove('hidden');
+            
+            // Update Active Buttons
+            document.querySelectorAll('nav button, .mobile-nav-fixed button').forEach(b => {
+                b.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600', 'text-indigo-700');
+                b.classList.add('text-slate-500', 'text-slate-400');
+            });
+            const activeNav = document.getElementById(`tab-${tabName}`);
+            const activeMobile = document.getElementById(`m-tab-${tabName}`);
+            if(activeNav) {
+                activeNav.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+                activeNav.classList.remove('text-slate-500');
+            }
+            if(activeMobile) {
+                activeMobile.classList.add('text-indigo-700');
+                activeMobile.classList.remove('text-slate-400');
+            }
+
+            if(tabName === 'dashboard') renderDashboard();
+            if(tabName === 'progress') renderProgressMap();
+            window.scrollTo(0, 0);
+        }
+
+        function filterDomain(domain) {
+            state.activeDomain = domain;
+            const btnH = document.getElementById('dom-h');
+            const btnG = document.getElementById('dom-g');
+            
+            if(domain === 'history') {
+                btnH.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+                btnG.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+            } else {
+                btnG.classList.add('bg-white', 'shadow-sm', 'text-indigo-600');
+                btnH.classList.remove('bg-white', 'shadow-sm', 'text-indigo-600');
+            }
+            
+            renderLessonSidebar();
+        }
+
+        function renderLessonSidebar() {
+            const container = document.getElementById('lesson-sidebar');
+            container.innerHTML = '';
+            
+            DB[state.activeDomain].forEach(lesson => {
+                const isDone = state.progress.completed.includes(lesson.id);
+                const isActive = state.lessonId === lesson.id;
+                
+                const btn = document.createElement('button');
+                btn.className = `w-full text-right p-4 rounded-xl mb-2 text-xs font-bold transition-all flex items-center justify-between
+                                ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-50 text-slate-600 hover:bg-slate-100'}`;
+                btn.innerHTML = `
+                    <span class="truncate pr-2">${lesson.title}</span>
+                    ${isDone ? '<span class="text-emerald-400 text-lg">●</span>' : ''}
+                `;
+                btn.onclick = () => loadLesson(lesson.id);
+                container.appendChild(btn);
+            });
+        }
+
+        function loadLesson(id) {
+            state.lessonId = id;
+            const lesson = [...DB.history, ...DB.geography].find(l => l.id === id);
+            
+            document.getElementById('lesson-reader').classList.remove('hidden');
+            document.getElementById('quiz-view').classList.add('hidden');
+            
+            const badge = document.getElementById('lesson-badge');
+            badge.innerText = state.activeDomain === 'history' ? 'تاريخ' : 'جغرافيا';
+            badge.className = `absolute top-0 right-0 px-6 py-2 text-white font-black text-xs rounded-bl-2xl ${state.activeDomain === 'history' ? 'bg-indigo-600' : 'bg-emerald-600'}`;
+            
+            document.getElementById('lesson-body').innerHTML = lesson.content;
+            
+            updateDoneBtn();
+            renderLessonSidebar();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleLessonDone() {
+            const idx = state.progress.completed.indexOf(state.lessonId);
+            if(idx === -1) state.progress.completed.push(state.lessonId);
+            else state.progress.completed.splice(idx, 1);
+            
+            updateDoneBtn();
+            renderLessonSidebar();
+            updateStats();
+        }
+
+        function updateDoneBtn() {
+            const btn = document.getElementById('done-btn');
+            const isDone = state.progress.completed.includes(state.lessonId);
+            if(isDone) {
+                btn.innerHTML = '<span>✅</span> أتممت المراجعة';
+                btn.className = "px-8 py-4 bg-slate-200 text-slate-600 rounded-2xl font-black transition-all flex items-center gap-2";
+            } else {
+                btn.innerHTML = '<span>✔️</span> أكملت المراجعة';
+                btn.className = "px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all flex items-center gap-2";
+            }
+        }
+
+        // --- 3. DASHBOARD & STATS ---
+        let dChart = null;
+        function renderDashboard() {
+            const total = 16;
+            const done = state.progress.completed.length;
+            const pct = Math.round((done / total) * 100);
+            
+            document.getElementById('dash-bar').style.width = `${pct}%`;
+            document.getElementById('dash-pct').innerText = `${pct}%`;
+            
+            // List rendering
+            const dList = document.getElementById('done-list');
+            const pList = document.getElementById('pending-list');
+            dList.innerHTML = ''; pList.innerHTML = '';
+            
+            [...DB.history, ...DB.geography].forEach(l => {
+                const item = document.createElement('div');
+                item.className = "flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl mb-2";
+                item.innerHTML = `<span class="text-xs font-bold">${l.title}</span>`;
+                
+                if(state.progress.completed.includes(l.id)) dList.appendChild(item);
+                else pList.appendChild(item);
+            });
+
+            if(!dList.innerHTML) dList.innerHTML = '<p class="text-xs text-slate-400">لا توجد دروس مكتملة بعد.</p>';
+            
+            // Chart
+            const ctx = document.getElementById('dashboardChart').getContext('2d');
+            if(dChart) dChart.destroy();
+            dChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [done, total - done],
+                        backgroundColor: ['#4f46e5', '#f1f5f9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '85%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        function renderProgressMap() {
+            const container = document.getElementById('progress-map');
+            container.innerHTML = '';
+            
+            [...DB.history, ...DB.geography].forEach((l, i) => {
+                const isDone = state.progress.completed.includes(l.id);
+                const score = state.progress.scores[l.id] || 0;
+                
+                const box = document.createElement('div');
+                box.className = `p-4 rounded-2xl border-2 text-center transition-all ${isDone ? 'border-emerald-200 bg-emerald-50' : 'border-slate-100 bg-white'}`;
+                box.innerHTML = `
+                    <div class="text-[10px] font-black text-slate-400 mb-1">درس ${i+1}</div>
+                    <div class="text-xs font-bold text-slate-700 truncate mb-2">${l.title.split('.')[1] || l.title}</div>
+                    <div class="text-[10px] font-black ${score > 50 ? 'text-indigo-600' : 'text-slate-300'}">QUIZ: ${score}%</div>
+                `;
+                container.appendChild(box);
+            });
+        }
+
+        function updateStats() {
+            // Stats updated within render calls
+        }
+
+        function updateCountdown() {
+            const target = new Date("June 01, 2026 08:00:00").getTime();
+            setInterval(() => {
+                const now = new Date().getTime();
+                const dist = target - now;
+                const days = Math.floor(dist / (1000 * 60 * 60 * 24));
+                document.getElementById('days-count').innerText = days > 0 ? days : 0;
+            }, 1000);
+        }
+
+        // --- 4. QUIZ LOGIC ---
+        function openQuiz() {
+            document.getElementById('lesson-reader').classList.add('hidden');
+            document.getElementById('quiz-view').classList.remove('hidden');
+            document.getElementById('quiz-start').classList.remove('hidden');
+            document.getElementById('quiz-active').classList.add('hidden');
+            document.getElementById('quiz-end').classList.add('hidden');
+        }
+
+        function startQuiz(level) {
+            const lesson = [...DB.history, ...DB.geography].find(l => l.id === state.lessonId);
+            state.quiz = {
+                questions: lesson.quiz[level] || lesson.quiz['easy'],
+                index: 0,
+                score: 0
+            };
+            
+            document.getElementById('quiz-start').classList.add('hidden');
+            document.getElementById('quiz-active').classList.remove('hidden');
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = state.quiz.questions[state.quiz.index];
+            document.getElementById('q-count').innerText = `السؤال ${state.quiz.index + 1} / ${state.quiz.questions.length}`;
+            document.getElementById('q-text').innerText = q.q;
+            
+            const opts = document.getElementById('q-options');
+            opts.innerHTML = '';
+            q.a.forEach((opt, i) => {
+                const b = document.createElement('button');
+                b.className = 'option-btn';
+                b.innerText = opt;
+                b.onclick = () => selectOption(i);
+                opts.appendChild(b);
+            });
+
+            document.getElementById('q-feedback').classList.add('hidden');
+            document.getElementById('q-next').classList.add('hidden');
+        }
+
+        function selectOption(i) {
+            const q = state.quiz.questions[state.quiz.index];
+            const btns = document.querySelectorAll('.option-btn');
+            const feedback = document.getElementById('q-feedback');
+            
+            btns.forEach(b => b.disabled = true);
+            
+            if(i === q.c) {
+                btns[i].classList.add('correct');
+                state.quiz.score++;
+                feedback.className = "mt-8 p-6 rounded-2xl font-bold bg-emerald-50 text-emerald-700 border border-emerald-100";
+                feedback.innerHTML = `⭐ صحيح! ${q.exp}`;
+            } else {
+                btns[i].classList.add('wrong');
+                btns[q.c].classList.add('correct');
+                feedback.className = "mt-8 p-6 rounded-2xl font-bold bg-rose-50 text-rose-700 border border-rose-100";
+                feedback.innerHTML = `❌ خطأ. ${q.exp}`;
+            }
+            
+            feedback.classList.remove('hidden');
+            document.getElementById('q-next').classList.remove('hidden');
+            if(state.quiz.index === state.quiz.questions.length - 1) document.getElementById('q-next').innerText = "رؤية النتيجة";
+        }
+
+        document.getElementById('q-next').onclick = () => {
+            if(state.quiz.index < state.quiz.questions.length - 1) {
+                state.quiz.index++;
+                showQuestion();
+            } else {
+                showQuizEnd();
+            }
+        };
+
+        function showQuizEnd() {
+            const scorePct = Math.round((state.quiz.score / state.quiz.questions.length) * 100);
+            state.progress.scores[state.lessonId] = scorePct;
+            
+            document.getElementById('quiz-active').classList.add('hidden');
+            document.getElementById('quiz-end').classList.remove('hidden');
+            document.getElementById('result-score').innerText = scorePct;
+            
+            const msg = document.getElementById('result-msg');
+            const emoji = document.getElementById('result-emoji');
+            
+            if(scorePct === 100) { emoji.innerText = '🤴'; msg.innerText = 'أنت جاهز تماماً للجهوي! علامة كاملة.'; }
+            else if(scorePct >= 70) { emoji.innerText = '🔥'; msg.innerText = 'أداء رائع، بقليل من التركيز ستصل للقمة.'; }
+            else { emoji.innerText = '📚'; msg.innerText = 'تحتاج لمراجعة هذا الدرس مرة أخرى بتركيز أكبر.'; }
+        }
+
+        // --- 5. AUDIO & EXTRAS ---
+        let audioOn = false;
+        function toggleAudio() {
+            const a = document.getElementById('bg-music');
+            const icon = document.getElementById('audio-icon');
+            if(!audioOn) {
+                a.play().catch(e => console.log("Interaction required"));
+                icon.innerText = '⏸️';
+                audioOn = true;
+            } else {
+                a.pause();
+                icon.innerText = '🎵';
+                audioOn = false;
+            }
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
